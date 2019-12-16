@@ -22,3 +22,10 @@ A Full Stack configuration for Symfony with Docker
 - jpegoptim
 - optipng
 - pngquant
+
+# How it works?
+
+- **app:**
+- **data:**
+- **docker:**
+- **logs:**
