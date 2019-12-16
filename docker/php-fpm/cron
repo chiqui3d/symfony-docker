@@ -1,0 +1,1 @@
+* * * * * /usr/bin/php /var/www/app/bin/console scheduler:execute  >> /var/log/cron/cron.log 2>&1
