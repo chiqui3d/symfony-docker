@@ -1,4 +1,5 @@
-FROM php:7.2-fpm
+ARG PHP_VERSION=7.2
+FROM php:${PHP_VERSION}-fpm
 
 # Install selected extensions and other stuff
 
@@ -7,7 +8,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     gnupg \
     build-essential \
-    nodejs \
     python \
     xz-utils \
     libfreetype6-dev \
@@ -34,14 +34,6 @@ RUN apt-get update && apt-get install -y \
 && docker-php-ext-install intl zip opcache pdo pdo_mysql mbstring mysqli \
 && pecl install apcu-5.1.18 \
 && docker-php-ext-enable apcu \
-### ioncube ###
-#&& cd /tmp \
-#&& curl -o ioncube_loaders_lin_x86-64.tar.gz http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz \
-#&& tar -xvvzf ioncube_loaders_lin_x86-64.tar.gz \
-#&& mv ioncube/ioncube_loader_lin_7.2.so   /usr/local/lib/php/extensions/no-debug-non-zts-20170718/ \
-#&& rm -Rf ioncube_loaders_lin_x86-64.tar.gz ioncube \
-#&& echo "zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20170718/ioncube_loader_lin_7.2.so" > /usr/local/etc/php/conf.d/docker-php-ext-ioncube_loader_lin_7.2.ini \
-
 ### composer ###
 && curl --insecure https://getcomposer.org/composer.phar -o /usr/bin/composer \
 && chmod +x /usr/bin/composer \
@@ -52,11 +44,6 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y xfonts-75dpi \
     && dpkg -i ./wkhtmltox_buster.deb \
     && rm ./wkhtmltox_buster.deb
-
-### NodeJs ###
-#RUN curl -sL https://deb.nodesource.com/setup_13.x  | bash - \
-#&& apt-get -y install nodejs \
-#&& npm install -g gulp
 
 ### clean ###
 RUN apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/* \
@@ -71,7 +58,6 @@ RUN rm /usr/local/etc/php-fpm.d/www.conf \
 
 ### php-fpm-pool ###
 COPY ./docker/php-fpm/app.pool.conf /usr/local/etc/php-fpm.d/www.conf
-#COPY ./docker/other/ioncube /usr/local/ioncube
 
 ### cron ###
 ADD ./docker/php-fpm/cron /var/spool/cron/crontabs/

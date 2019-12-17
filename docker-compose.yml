@@ -6,7 +6,6 @@ volumes:
 networks:
   db:
   web:
- # elk:
 
 services:
   mysql:
@@ -14,20 +13,20 @@ services:
       context: ./
       dockerfile: ./docker/mysql/Dockerfile
       args:
-        - MYSQL_VERSION=8
+        - MYSQL_VERSION=${MYSQL_VERSION}
     restart: always
-    container_name: symfony-mysql
+    container_name: ${PROJECT_NAME}-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root_password
-      MYSQL_DATABASE: symfony_docker
-      MYSQL_USER: symfony_user
-      MYSQL_PASSWORD: symfony_db_pass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       -  db_data:/var/lib/mysql
       - ./docker/mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
       - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
     ports:
-      - "3309:3306"
+      - "${MYSQL_PORT}:3306"
     networks:
       - db
   phpmyadmin:
@@ -35,71 +34,58 @@ services:
       context: ./
       dockerfile: ./docker/phpmyadmin/Dockerfile
     restart: always
-    container_name: symfony-phpmyadmin
+    container_name: ${PROJECT_NAME}-phpmyadmin
     environment:
       PMA_HOST: mysql
       PMA_PORT: 3306
     ports:
-      - "8081:80"
+      - "${PHPMYADMIN_PORT}:80"
     depends_on:
       - mysql
     networks:
       - db
   php:
+    env_file:
+      - ./.env
     build:
       context: ./
       dockerfile: ./docker/php-fpm/Dockerfile
-    container_name: symfony-php
+      args:
+        - PHP_VERSION=${PHP_VERSION}
+    container_name: ${PROJECT_NAME}-php
     restart: always
     expose:
       - "9000"
     volumes:
-      - ./app:/var/www/app
+      - ./app:${APP_SYMFONY_DIRECTORY}
       - ./logs/cron:/var/log/cron
-      - ./logs/symfony:/var/www/app/var/log
-    working_dir: /var/www/app
+      - ./logs/symfony:${APP_SYMFONY_DIRECTORY}/var/log
+    working_dir: ${APP_SYMFONY_DIRECTORY}
     depends_on:
       - mysql
-    environment:
-      PHP_IDE_CONFIG: "serverName=symfony-docker-server"
-      VIRTUAL_HOST: "symfony-docker.localhost"
     networks:
       - db
       - web
   nginx:
+    env_file:
+      - ./.env
     build:
       context: ./
       dockerfile: ./docker/nginx/Dockerfile
-    working_dir: /var/www/app
-    container_name: symfony-nginx
+    working_dir: ${APP_SYMFONY_DIRECTORY}
+    container_name: ${PROJECT_NAME}-nginx
     restart: always
-    hostname: symfony-docker
-    domainname: localhost
     ports:
       - "80:80"
     environment:
-      - VIRTUAL_HOST=symfony-docker.localhost
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
     depends_on:
       - php
     volumes:
-      - ./app:/var/www/app
+      - ./app:${APP_SYMFONY_DIRECTORY}
       - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./docker/nginx/app.conf:/etc/nginx/conf.d/default.conf
       - ./logs/nginx:/var/log/nginx
     networks:
       web:
         aliases:
-          - symfony-docker.localhost
-#  elk:
-#    image: willdurand/elk
-#    container_name: symfony-elk
-#    ports:
-#      - 81:80
-#    volumes:
-#      - ./docker/elk/logstash/logstash.conf:/etc/logstash/logstash.conf
-#      - ./docker/elk/logstash/patterns:/etc/logstash/conf.d/patterns
-#      - ./logs/nginx:/var/log/nginx
-#      - ./logs/cron:/var/log/cron
-#      - ./logs/symfony:/var/www/app/var/log
-#    networks:
-#      - elk
+          - ${VIRTUAL_HOST}

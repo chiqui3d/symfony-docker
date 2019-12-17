@@ -1,6 +1,6 @@
 server {
-    server_name symfony-docker.localhost www.symfony-docker.localhost;
-    root /var/www/app/public;
+    server_name ${VIRTUAL_HOST} www.${VIRTUAL_HOST};
+    root ${PUBLIC_SYMFONY_DIRECTORY};
     index index.php index.html index.htm;
 
     listen 80;
@@ -10,11 +10,10 @@ server {
      # listen [::]:443 ssl ipv6only=on;
      # ssl_certificate /etc/nginx/ssl/default.crt;
      # ssl_certificate_key /etc/nginx/ssl/default.key;
-
-    #ssl on;
-    #ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
-    #ssl_certificate /etc/nginx/conf.d/ssl/cert.pem;
-    #ssl_certificate_key /etc/nginx/conf.d/ssl/cert.key;
+     #ssl on;
+     #ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
+     #ssl_certificate /etc/nginx/conf.d/ssl/cert.pem;
+     #ssl_certificate_key /etc/nginx/conf.d/ssl/cert.key;
 
     location / {
         # try to serve file directly, fallback to index.php
